@@ -1,0 +1,115 @@
+// MF Gastronomia — schema do banco
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Menu {
+  id             String             @id @default(cuid())
+  slug           String             @unique
+  name           String
+  description    String
+  mainImageUrl   String
+  pricePerPerson Decimal            @db.Decimal(10, 2)
+  isActive       Boolean            @default(true)
+  order          Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  items          MenuItem[]
+  galleryImages  MenuGalleryImage[]
+  leads          Lead[]
+}
+
+enum MenuItemCategory {
+  APERITIVO
+  CARNE
+  ACOMPANHAMENTO
+}
+
+model MenuItem {
+  id       String           @id @default(cuid())
+  menuId   String
+  category MenuItemCategory
+  name     String
+  order    Int              @default(0)
+
+  menu     Menu             @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@index([menuId])
+}
+
+model MenuGalleryImage {
+  id     String @id @default(cuid())
+  menuId String
+  url    String
+  order  Int    @default(0)
+
+  menu   Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@index([menuId])
+}
+
+model PortfolioImage {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+// Singleton — sempre exatamente uma linha (id = "default")
+model SiteSettings {
+  id                    String   @id @default("default")
+  whatsappNumber        String
+  defaultContactMessage String
+  heroTitle             String
+  heroSubtitle          String
+  aboutText             String
+  contactText           String
+  waiterAdditionalPrice Decimal  @db.Decimal(10, 2) @default(0)
+  logoUrl               String?
+  heroImageUrl          String?
+  aboutImageUrl         String?
+  updatedAt             DateTime @updatedAt
+}
+
+enum LeadSource {
+  QUICK_CONTACT
+  MENU_QUOTE
+}
+
+model Lead {
+  id              String     @id @default(cuid())
+  source          LeadSource
+  name            String
+  phone           String
+  menuId          String?
+  peopleCount     Int?
+  waitersCount    Int?
+  eventDate       String?
+  city            String?
+  neighborhood    String?
+  calculatedTotal Decimal?   @db.Decimal(10, 2)
+  createdAt       DateTime   @default(now())
+
+  menu            Menu?      @relation(fields: [menuId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
