@@ -36,7 +36,26 @@ model Menu {
   items          MenuItem[]
   galleryImages  MenuGalleryImage[]
   addons         MenuAddon[]
+  priceTiers     MenuPriceTier[]
   leads          Lead[]
+}
+
+// Faixas de preço por quantidade de pessoas. Aplica o preço da faixa
+// com maior `minPeople` que seja <= quantidade. Se nenhuma se aplica,
+// usa Menu.pricePerPerson como base.
+model MenuPriceTier {
+  id             String   @id @default(cuid())
+  menuId         String
+  minPeople      Int
+  pricePerPerson Decimal  @db.Decimal(10, 2)
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  menu           Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([menuId, minPeople])
+  @@index([menuId])
 }
 
 // Adicionais por cardápio (cobrados por pessoa). Cliente marca no público.

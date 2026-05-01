@@ -66,12 +66,14 @@ export function MenuForm({ mode, initial }: Props) {
       items: [],
       galleryImages: [],
       addons: [],
+      priceTiers: [],
     },
   });
 
   const items = useFieldArray({ control, name: "items" });
   const gallery = useFieldArray({ control, name: "galleryImages" });
   const addons = useFieldArray({ control, name: "addons" });
+  const priceTiers = useFieldArray({ control, name: "priceTiers" });
 
   const mainImageUrl = watch("mainImageUrl");
   const galleryImages = watch("galleryImages");
@@ -375,6 +377,111 @@ export function MenuForm({ mode, initial }: Props) {
             }
           >
             Adicionar adicional
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Faixas de preço por quantidade de pessoas</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Cobre preços diferentes conforme a quantidade de pessoas do evento.
+            Cada faixa define que <strong>a partir</strong> de X pessoas, o
+            preço por pessoa passa a ser Y. A faixa com maior quantidade que
+            ainda cabe é a aplicada. Se nenhuma faixa for atingida, vale o
+            preço base do cardápio (campo &quot;Preço por pessoa&quot; acima).
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Exemplo: cardápio com preço base R$ 89,90 e uma faixa de
+            &quot;30+ pessoas: R$ 79,90&quot;. Quem pedir orçamento para 25
+            pessoas paga R$ 89,90/pessoa. Quem pedir para 35 paga R$ 79,90.
+          </p>
+          {priceTiers.fields.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma faixa cadastrada. Use o botão abaixo se quiser oferecer
+              desconto para grupos maiores.
+            </p>
+          )}
+          {priceTiers.fields.map((field, idx) => (
+            <div key={field.id} className="rounded-md border p-3 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-[1fr_1fr_120px]">
+                <div className="space-y-1">
+                  <Label className="text-xs">A partir de (pessoas)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder="30"
+                    {...register(`priceTiers.${idx}.minPeople`, {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  {errors.priceTiers?.[idx]?.minPeople && (
+                    <p
+                      role="alert"
+                      aria-live="polite"
+                      className="text-xs text-destructive"
+                    >
+                      {errors.priceTiers[idx]?.minPeople?.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Preço por pessoa (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    placeholder="79.90"
+                    {...register(`priceTiers.${idx}.pricePerPerson`, {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  {errors.priceTiers?.[idx]?.pricePerPerson && (
+                    <p
+                      role="alert"
+                      aria-live="polite"
+                      className="text-xs text-destructive"
+                    >
+                      {errors.priceTiers[idx]?.pricePerPerson?.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Ordem</Label>
+                  <Input
+                    type="number"
+                    {...register(`priceTiers.${idx}.order`, {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => priceTiers.remove(idx)}
+                >
+                  Remover faixa
+                </Button>
+              </div>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              priceTiers.append({
+                minPeople: 30,
+                pricePerPerson: 0,
+                order: priceTiers.fields.length,
+              })
+            }
+          >
+            Adicionar faixa
           </Button>
         </CardContent>
       </Card>

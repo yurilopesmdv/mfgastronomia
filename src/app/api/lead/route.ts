@@ -6,6 +6,7 @@ import {
   buildWhatsappMessage,
   buildWhatsappUrl,
   calculateMenuTotal,
+  resolvePricePerPerson,
 } from "@/lib/whatsapp";
 import { checkLeadRateLimit } from "@/lib/ratelimit";
 
@@ -70,6 +71,9 @@ export async function POST(req: NextRequest) {
         where: { isActive: true },
         select: { id: true, name: true, pricePerPerson: true },
       },
+      priceTiers: {
+        select: { minPeople: true, pricePerPerson: true },
+      },
     },
   });
   if (!menu || !menu.isActive) {
@@ -96,8 +100,19 @@ export async function POST(req: NextRequest) {
     0,
   );
 
+  // Preço efetivo conforme faixas de pessoas. Sem confiar no cliente:
+  // calcula sempre no servidor com os dados do banco.
+  const { price: effectivePricePerPerson } = resolvePricePerPerson({
+    basePricePerPerson: Number(menu.pricePerPerson),
+    tiers: menu.priceTiers.map((t) => ({
+      minPeople: t.minPeople,
+      pricePerPerson: Number(t.pricePerPerson),
+    })),
+    peopleCount: data.peopleCount,
+  });
+
   const calculatedTotal = calculateMenuTotal({
-    pricePerPerson: Number(menu.pricePerPerson),
+    pricePerPerson: effectivePricePerPerson,
     peopleCount: data.peopleCount,
     waitersCount: data.waitersCount,
     waiterAdditionalPrice: Number(settings.waiterAdditionalPrice),
