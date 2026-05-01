@@ -2,6 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MenuQuoteForm } from "@/components/public/MenuQuoteForm";
+import { MenuGalleryGrid } from "@/components/public/MenuGalleryGrid";
 import { FadeIn } from "@/components/public/FadeIn";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/site-settings";
@@ -25,12 +26,26 @@ export async function generateMetadata({
   const { slug } = await params;
   const menu = await prisma.menu.findUnique({
     where: { slug },
-    select: { name: true, description: true },
+    select: { name: true, description: true, mainImageUrl: true },
   });
   if (!menu) return {};
   return {
     title: menu.name,
     description: menu.description,
+    alternates: { canonical: `/cardapios/${slug}` },
+    openGraph: {
+      title: `${menu.name} | MF Gastronomia`,
+      description: menu.description,
+      images: menu.mainImageUrl
+        ? [{ url: menu.mainImageUrl, width: 1200, height: 630, alt: menu.name }]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${menu.name} | MF Gastronomia`,
+      description: menu.description,
+      images: menu.mainImageUrl ? [menu.mainImageUrl] : undefined,
+    },
   };
 }
 
@@ -46,6 +61,10 @@ export default async function MenuDetailPage({
       include: {
         items: { orderBy: [{ category: "asc" }, { order: "asc" }] },
         galleryImages: { orderBy: { order: "asc" } },
+        addons: {
+          where: { isActive: true },
+          orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+        },
       },
     }),
     getSiteSettings(),
@@ -145,22 +164,13 @@ export default async function MenuDetailPage({
                   <h2 className="font-heading text-3xl md:text-4xl tracking-tight">
                     Galeria
                   </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                    {menu.galleryImages.map((img) => (
-                      <div
-                        key={img.id}
-                        className="relative aspect-square overflow-hidden rounded-md bg-muted"
-                      >
-                        <Image
-                          src={img.url}
-                          alt={menu.name}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-700 hover:scale-105"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <MenuGalleryGrid
+                    images={menu.galleryImages.map((img) => ({
+                      id: img.id,
+                      url: img.url,
+                    }))}
+                    menuName={menu.name}
+                  />
                 </div>
               </FadeIn>
             )}
@@ -180,6 +190,13 @@ export default async function MenuDetailPage({
                     menuId={menu.id}
                     pricePerPerson={Number(menu.pricePerPerson)}
                     waiterAdditionalPrice={Number(settings.waiterAdditionalPrice)}
+                    minPeople={menu.minPeople}
+                    addons={menu.addons.map((a) => ({
+                      id: a.id,
+                      name: a.name,
+                      description: a.description,
+                      pricePerPerson: Number(a.pricePerPerson),
+                    }))}
                   />
                 </CardContent>
               </Card>

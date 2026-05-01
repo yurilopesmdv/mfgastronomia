@@ -8,6 +8,9 @@ const links = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/cardapios", label: "Cardápios" },
   { href: "/admin/portfolio", label: "Portfólio" },
+  { href: "/admin/depoimentos", label: "Depoimentos" },
+  { href: "/admin/faq", label: "Perguntas frequentes" },
+  { href: "/admin/home", label: "Home (diferenciais & passos)" },
   { href: "/admin/configuracoes", label: "Configurações" },
   { href: "/admin/usuarios", label: "Usuários" },
   { href: "/admin/leads", label: "Leads" },
@@ -28,6 +31,7 @@ export function Sidebar() {
             <Link
               key={l.href}
               href={l.href}
+              prefetch
               className={cn(
                 "rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap transition",
                 active

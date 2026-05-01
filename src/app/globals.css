@@ -113,7 +113,10 @@
   font-family: var(--font-heading);
 }
 
-/* Scroll reveal — animação aplicada via FadeIn component */
+/* Scroll reveal — animação aplicada via FadeIn component.
+   Conteúdo é visível por padrão; o componente só aplica fade-in-init
+   quando há JS + IntersectionObserver + sem prefers-reduced-motion.
+   Mesmo assim, garantimos fallback CSS abaixo. */
 .fade-in-init {
   opacity: 0;
   transform: translateY(20px);
@@ -124,6 +127,23 @@
 .fade-in-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-init,
+  .fade-in-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Grain texture sutil pra fundos quentes */

@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { FadeIn } from "@/components/public/FadeIn";
+import { PortfolioGrid } from "@/components/public/PortfolioGrid";
 import { prisma } from "@/lib/prisma";
 
 export const revalidate = 60;
@@ -35,30 +35,13 @@ export default async function PortfolioPage() {
         {images.length === 0 ? (
           <p className="text-muted-foreground">Galeria sendo atualizada.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {images.map((img, i) => (
-              <FadeIn
-                key={img.id}
-                delay={(i % 8) * 50}
-                className={i % 5 === 0 ? "col-span-2 md:col-span-2 row-span-2" : ""}
-              >
-                <figure className="relative aspect-square overflow-hidden rounded-md bg-muted h-full w-full">
-                  <Image
-                    src={img.url}
-                    alt={img.caption ?? "Evento"}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-700 hover:scale-105"
-                  />
-                  {img.caption ? (
-                    <figcaption className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-xs text-white">
-                      {img.caption}
-                    </figcaption>
-                  ) : null}
-                </figure>
-              </FadeIn>
-            ))}
-          </div>
+          <PortfolioGrid
+            images={images.map((img) => ({
+              id: img.id,
+              url: img.url,
+              caption: img.caption ?? null,
+            }))}
+          />
         )}
       </div>
     </div>

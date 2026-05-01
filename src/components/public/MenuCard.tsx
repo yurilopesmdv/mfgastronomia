@@ -9,6 +9,8 @@ type Props = {
   mainImageUrl: string;
   pricePerPerson: number;
   index?: number;
+  /** Nível do heading do nome do cardápio. Default: h3 (uso dentro de seção com h2). */
+  headingLevel?: "h2" | "h3";
 };
 
 export function MenuCard({
@@ -18,7 +20,9 @@ export function MenuCard({
   mainImageUrl,
   pricePerPerson,
   index,
+  headingLevel = "h3",
 }: Props) {
+  const Heading = headingLevel;
   return (
     <Link href={`/cardapios/${slug}`} className="group block">
       <article className="space-y-4">
@@ -42,9 +46,9 @@ export function MenuCard({
 
         <div className="space-y-2">
           <div className="flex items-baseline justify-between gap-3">
-            <h3 className="font-heading text-2xl md:text-3xl tracking-tight">
+            <Heading className="font-heading text-2xl md:text-3xl tracking-tight">
               {name}
-            </h3>
+            </Heading>
             <span className="text-sm font-medium tabular-nums text-foreground whitespace-nowrap">
               {formatBRL(pricePerPerson)}
               <span className="text-muted-foreground font-normal">/pessoa</span>
@@ -61,3 +65,4 @@ export function MenuCard({
     </Link>
   );
 }
+

@@ -13,6 +13,7 @@ export default async function EditMenuPage({
     include: {
       items: { orderBy: { order: "asc" } },
       galleryImages: { orderBy: { order: "asc" } },
+      addons: { orderBy: [{ order: "asc" }, { createdAt: "asc" }] },
     },
   });
   if (!menu) notFound();
@@ -29,6 +30,7 @@ export default async function EditMenuPage({
           description: menu.description,
           mainImageUrl: menu.mainImageUrl,
           pricePerPerson: Number(menu.pricePerPerson),
+          minPeople: menu.minPeople,
           isActive: menu.isActive,
           order: menu.order,
           items: menu.items.map((i) => ({
@@ -39,6 +41,13 @@ export default async function EditMenuPage({
           galleryImages: menu.galleryImages.map((g) => ({
             url: g.url,
             order: g.order,
+          })),
+          addons: menu.addons.map((a) => ({
+            name: a.name,
+            description: a.description,
+            pricePerPerson: Number(a.pricePerPerson),
+            order: a.order,
+            isActive: a.isActive,
           })),
         }}
       />

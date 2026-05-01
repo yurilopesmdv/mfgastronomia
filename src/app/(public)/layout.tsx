@@ -19,7 +19,16 @@ export default async function PublicLayout({
     <>
       <Header logoUrl={settings.logoUrl} whatsappUrl={whatsappUrl} />
       <main className="flex-1">{children}</main>
-      <Footer logoUrl={settings.logoUrl} contactText={settings.contactText} />
+      <Footer
+        logoUrl={settings.logoUrl}
+        logoUrlDark={settings.logoUrlDark}
+        contactText={settings.contactText}
+        email={settings.email}
+        phoneFallback={settings.phoneFallback}
+        whatsappNumber={settings.whatsappNumber}
+        instagramHandle={settings.instagramHandle}
+        facebookUrl={settings.facebookUrl}
+      />
       <FloatingWhatsApp whatsappUrl={whatsappUrl} />
     </>
   );

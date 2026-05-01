@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,7 +54,9 @@ export function LoginForm() {
           {...register("email")}
         />
         {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
+          <p role="alert" aria-live="polite" className="text-sm text-destructive">
+            {errors.email.message}
+          </p>
         )}
       </div>
       <div className="space-y-2">
@@ -65,12 +68,24 @@ export function LoginForm() {
           {...register("password")}
         />
         {errors.password && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
+          <p role="alert" aria-live="polite" className="text-sm text-destructive">
+            {errors.password.message}
+          </p>
         )}
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p role="alert" aria-live="assertive" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Entrando..." : "Entrar"}
+        {isSubmitting ? (
+          <>
+            <Loader2 className="size-4 animate-spin" /> Entrando...
+          </>
+        ) : (
+          "Entrar"
+        )}
       </Button>
     </form>
   );

@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createUserSchema } from "@/lib/validators";
+import { useSavedFeedback } from "@/lib/hooks/useSavedFeedback";
 import { createUser, deleteUser } from "./actions";
 
 type Values = z.infer<typeof createUserSchema>;
@@ -31,6 +33,7 @@ export function UsersManager({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { saved, markSaved } = useSavedFeedback();
 
   const {
     register,
@@ -48,6 +51,7 @@ export function UsersManager({
       }
       toast.success("Usuário criado");
       reset();
+      markSaved();
       router.refresh();
     });
   }
@@ -95,8 +99,18 @@ export function UsersManager({
               )}
             </div>
             <div className="sm:col-span-3">
-              <Button type="submit" disabled={pending}>
-                {pending ? "Criando..." : "Criar usuário"}
+              <Button type="submit" disabled={pending || saved}>
+                {pending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" /> Criando...
+                  </>
+                ) : saved ? (
+                  <>
+                    <Check className="size-4" /> Criado
+                  </>
+                ) : (
+                  "Criar usuário"
+                )}
               </Button>
             </div>
           </form>
@@ -105,7 +119,9 @@ export function UsersManager({
 
       <div>
         <h2 className="text-lg font-semibold mb-3">Usuários ({users.length})</h2>
-        <div className="overflow-x-auto rounded-md border">
+
+        {/* Tabela (sm e acima) */}
+        <div className="hidden sm:block overflow-x-auto rounded-md border">
           <table className="w-full text-sm">
             <thead className="bg-muted/40">
               <tr className="text-left">
@@ -145,6 +161,46 @@ export function UsersManager({
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Cards (mobile, < sm) */}
+        <div className="sm:hidden space-y-3">
+          {users.map((u) => (
+            <Card key={u.id}>
+              <CardContent className="py-4 space-y-2 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="font-semibold">
+                    {u.name}
+                    {u.id === currentUserId && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        (você)
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <dl className="grid grid-cols-[5rem_1fr] gap-x-3 gap-y-1">
+                  <dt className="text-muted-foreground">Email</dt>
+                  <dd className="break-all">{u.email}</dd>
+                  <dt className="text-muted-foreground">Criado</dt>
+                  <dd>{new Date(u.createdAt).toLocaleDateString("pt-BR")}</dd>
+                </dl>
+                {u.id !== currentUserId && (
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      disabled={pending}
+                      onClick={() => onDelete(u.id)}
+                      className="w-full"
+                    >
+                      Deletar usuário
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>
