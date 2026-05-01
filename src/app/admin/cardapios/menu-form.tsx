@@ -219,45 +219,54 @@ export function MenuForm({ mode, initial }: Props) {
             <p className="text-sm text-muted-foreground">Nenhum item. Adicione abaixo.</p>
           )}
           {items.fields.map((field, idx) => (
-            <div
-              key={field.id}
-              className="grid gap-2 sm:grid-cols-[160px_1fr_80px_auto] items-end"
-            >
-              <div className="space-y-1">
-                <Label className="text-xs">Categoria</Label>
-                <Select
-                  value={watch(`items.${idx}.category`)}
-                  onValueChange={(v) =>
-                    setValue(
-                      `items.${idx}.category`,
-                      v as "APERITIVO" | "CARNE" | "ACOMPANHAMENTO",
-                    )
-                  }
+            <div key={field.id} className="rounded-md border p-3 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-[180px_1fr_90px]">
+                <div className="space-y-1">
+                  <Label className="text-xs">Categoria</Label>
+                  <Select
+                    value={watch(`items.${idx}.category`)}
+                    onValueChange={(v) =>
+                      setValue(
+                        `items.${idx}.category`,
+                        v as "APERITIVO" | "CARNE" | "ACOMPANHAMENTO",
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="APERITIVO">Aperitivo</SelectItem>
+                      <SelectItem value="CARNE">Carne</SelectItem>
+                      <SelectItem value="ACOMPANHAMENTO">Acompanhamento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Nome</Label>
+                  <Input
+                    {...register(`items.${idx}.name`)}
+                    placeholder="Picanha"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Ordem</Label>
+                  <Input
+                    type="number"
+                    {...register(`items.${idx}.order`, { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => items.remove(idx)}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="APERITIVO">Aperitivo</SelectItem>
-                    <SelectItem value="CARNE">Carne</SelectItem>
-                    <SelectItem value="ACOMPANHAMENTO">Acompanhamento</SelectItem>
-                  </SelectContent>
-                </Select>
+                  Remover
+                </Button>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Nome</Label>
-                <Input {...register(`items.${idx}.name`)} placeholder="Picanha" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Ordem</Label>
-                <Input
-                  type="number"
-                  {...register(`items.${idx}.order`, { valueAsNumber: true })}
-                />
-              </div>
-              <Button type="button" variant="outline" onClick={() => items.remove(idx)}>
-                Remover
-              </Button>
             </div>
           ))}
           <Button
