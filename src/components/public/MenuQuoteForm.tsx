@@ -197,15 +197,18 @@ export function MenuQuoteForm({
 
   async function onSubmit(values: FormValues) {
     try {
+      // API recebe telefone como dígitos puros — máscara é só apresentação
+      const payload = {
+        source: "MENU_QUOTE" as const,
+        menuId,
+        ...values,
+        phone: values.phone.replace(/\D/g, ""),
+        selectedAddonIds: Array.from(selectedAddonIds),
+      };
       const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source: "MENU_QUOTE",
-          menuId,
-          ...values,
-          selectedAddonIds: Array.from(selectedAddonIds),
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
