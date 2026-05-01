@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatBRL } from "@/lib/whatsapp";
+import { LeadDeleteButton } from "./lead-delete-button";
 
 export const dynamic = "force-dynamic";
 
@@ -191,6 +192,7 @@ export default async function AdminLeadsPage({
                   <th className="p-3">Data evento</th>
                   <th className="p-3">Local</th>
                   <th className="p-3 text-right">Total</th>
+                  <th className="p-3 text-right w-[1%]">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,6 +236,9 @@ export default async function AdminLeadsPage({
                         {l.calculatedTotal
                           ? formatBRL(Number(l.calculatedTotal))
                           : "-"}
+                      </td>
+                      <td className="p-3 text-right">
+                        <LeadDeleteButton id={l.id} leadName={l.name} />
                       </td>
                     </tr>
                   );
@@ -320,6 +325,13 @@ export default async function AdminLeadsPage({
                         </ul>
                       </div>
                     )}
+                    <div className="pt-2 flex justify-end">
+                      <LeadDeleteButton
+                        id={l.id}
+                        leadName={l.name}
+                        variant="full"
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               );

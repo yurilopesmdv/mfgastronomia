@@ -120,44 +120,98 @@ export default async function AdminDashboard() {
               Nenhum evento futuro agendado pelos leads.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="py-2 pr-3">Quando</th>
-                    <th className="py-2 pr-3">Cliente</th>
-                    <th className="py-2 pr-3">Telefone</th>
-                    <th className="py-2 pr-3">Cardápio</th>
-                    <th className="py-2 pr-3">Pessoas</th>
-                    <th className="py-2 pr-3">Local</th>
-                    <th className="py-2 pr-3 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {upcomingEvents.map((l) => (
-                    <tr key={l.id} className="border-b last:border-0">
-                      <td className="py-2 pr-3 whitespace-nowrap">
-                        {l.parsedDate!.toLocaleDateString("pt-BR")}
-                      </td>
-                      <td className="py-2 pr-3">{l.name}</td>
-                      <td className="py-2 pr-3">{l.phone}</td>
-                      <td className="py-2 pr-3">{l.menu?.name ?? "-"}</td>
-                      <td className="py-2 pr-3">{l.peopleCount ?? "-"}</td>
-                      <td className="py-2 pr-3">
-                        {l.city && l.neighborhood
-                          ? `${l.city} - ${l.neighborhood}`
-                          : l.city || "-"}
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {l.calculatedTotal
-                          ? formatBRL(Number(l.calculatedTotal))
-                          : "-"}
-                      </td>
+            <>
+              {/* Tabela (sm e acima) */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th className="py-2 pr-3">Quando</th>
+                      <th className="py-2 pr-3">Cliente</th>
+                      <th className="py-2 pr-3">Telefone</th>
+                      <th className="py-2 pr-3">Cardápio</th>
+                      <th className="py-2 pr-3">Pessoas</th>
+                      <th className="py-2 pr-3">Local</th>
+                      <th className="py-2 pr-3 text-right">Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {upcomingEvents.map((l) => (
+                      <tr key={l.id} className="border-b last:border-0">
+                        <td className="py-2 pr-3 whitespace-nowrap">
+                          {l.parsedDate!.toLocaleDateString("pt-BR")}
+                        </td>
+                        <td className="py-2 pr-3">{l.name}</td>
+                        <td className="py-2 pr-3">{l.phone}</td>
+                        <td className="py-2 pr-3">{l.menu?.name ?? "-"}</td>
+                        <td className="py-2 pr-3">{l.peopleCount ?? "-"}</td>
+                        <td className="py-2 pr-3">
+                          {l.city && l.neighborhood
+                            ? `${l.city} - ${l.neighborhood}`
+                            : l.city || "-"}
+                        </td>
+                        <td className="py-2 pr-3 text-right tabular-nums">
+                          {l.calculatedTotal
+                            ? formatBRL(Number(l.calculatedTotal))
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Cards (mobile, < sm) */}
+              <div className="sm:hidden space-y-3">
+                {upcomingEvents.map((l) => (
+                  <div
+                    key={l.id}
+                    className="rounded-md border bg-background p-3 text-sm space-y-1"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-semibold">{l.name}</div>
+                      <div className="text-xs text-muted-foreground whitespace-nowrap">
+                        {l.parsedDate!.toLocaleDateString("pt-BR")}
+                      </div>
+                    </div>
+                    <dl className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1">
+                      <dt className="text-muted-foreground">Telefone</dt>
+                      <dd>{l.phone}</dd>
+                      {l.menu?.name && (
+                        <>
+                          <dt className="text-muted-foreground">Cardápio</dt>
+                          <dd>{l.menu.name}</dd>
+                        </>
+                      )}
+                      {l.peopleCount != null && (
+                        <>
+                          <dt className="text-muted-foreground">Pessoas</dt>
+                          <dd>{l.peopleCount}</dd>
+                        </>
+                      )}
+                      {(l.city || l.neighborhood) && (
+                        <>
+                          <dt className="text-muted-foreground">Local</dt>
+                          <dd>
+                            {l.city && l.neighborhood
+                              ? `${l.city} - ${l.neighborhood}`
+                              : l.city || "-"}
+                          </dd>
+                        </>
+                      )}
+                      {l.calculatedTotal && (
+                        <>
+                          <dt className="text-muted-foreground">Total</dt>
+                          <dd className="font-medium tabular-nums">
+                            {formatBRL(Number(l.calculatedTotal))}
+                          </dd>
+                        </>
+                      )}
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -177,42 +231,85 @@ export default async function AdminDashboard() {
           {recentLeads.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum lead ainda.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="py-2 pr-3">Quando</th>
-                    <th className="py-2 pr-3">Tipo</th>
-                    <th className="py-2 pr-3">Nome</th>
-                    <th className="py-2 pr-3">Telefone</th>
-                    <th className="py-2 pr-3">Cardápio</th>
-                    <th className="py-2 pr-3 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentLeads.map((l) => (
-                    <tr key={l.id} className="border-b last:border-0">
-                      <td className="py-2 pr-3 whitespace-nowrap">
-                        {new Date(l.createdAt).toLocaleString("pt-BR")}
-                      </td>
-                      <td className="py-2 pr-3">
-                        {l.source === "QUICK_CONTACT" ? (
-                          <Badge variant="secondary">Contato</Badge>
-                        ) : (
-                          <Badge>Orçamento</Badge>
-                        )}
-                      </td>
-                      <td className="py-2 pr-3">{l.name}</td>
-                      <td className="py-2 pr-3">{l.phone}</td>
-                      <td className="py-2 pr-3">{l.menu?.name ?? "-"}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {l.calculatedTotal ? formatBRL(Number(l.calculatedTotal)) : "-"}
-                      </td>
+            <>
+              {/* Tabela (sm e acima) */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th className="py-2 pr-3">Quando</th>
+                      <th className="py-2 pr-3">Tipo</th>
+                      <th className="py-2 pr-3">Nome</th>
+                      <th className="py-2 pr-3">Telefone</th>
+                      <th className="py-2 pr-3">Cardápio</th>
+                      <th className="py-2 pr-3 text-right">Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {recentLeads.map((l) => (
+                      <tr key={l.id} className="border-b last:border-0">
+                        <td className="py-2 pr-3 whitespace-nowrap">
+                          {new Date(l.createdAt).toLocaleString("pt-BR")}
+                        </td>
+                        <td className="py-2 pr-3">
+                          {l.source === "QUICK_CONTACT" ? (
+                            <Badge variant="secondary">Contato</Badge>
+                          ) : (
+                            <Badge>Orçamento</Badge>
+                          )}
+                        </td>
+                        <td className="py-2 pr-3">{l.name}</td>
+                        <td className="py-2 pr-3">{l.phone}</td>
+                        <td className="py-2 pr-3">{l.menu?.name ?? "-"}</td>
+                        <td className="py-2 pr-3 text-right tabular-nums">
+                          {l.calculatedTotal ? formatBRL(Number(l.calculatedTotal)) : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Cards (mobile, < sm) */}
+              <div className="sm:hidden space-y-3">
+                {recentLeads.map((l) => (
+                  <div
+                    key={l.id}
+                    className="rounded-md border bg-background p-3 text-sm space-y-1"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-semibold">{l.name}</div>
+                      {l.source === "QUICK_CONTACT" ? (
+                        <Badge variant="secondary">Contato</Badge>
+                      ) : (
+                        <Badge>Orçamento</Badge>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(l.createdAt).toLocaleString("pt-BR")}
+                    </div>
+                    <dl className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1">
+                      <dt className="text-muted-foreground">Telefone</dt>
+                      <dd>{l.phone}</dd>
+                      {l.menu?.name && (
+                        <>
+                          <dt className="text-muted-foreground">Cardápio</dt>
+                          <dd>{l.menu.name}</dd>
+                        </>
+                      )}
+                      {l.calculatedTotal && (
+                        <>
+                          <dt className="text-muted-foreground">Total</dt>
+                          <dd className="font-medium tabular-nums">
+                            {formatBRL(Number(l.calculatedTotal))}
+                          </dd>
+                        </>
+                      )}
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
