@@ -72,6 +72,16 @@ export const menuAddonSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const menuPriceTierSchema = z.object({
+  minPeople: z
+    .number({ message: "Informe a quantidade mínima" })
+    .int()
+    .min(1, "Mínimo 1 pessoa")
+    .max(2000),
+  pricePerPerson: z.number().positive("Informe um preço válido"),
+  order: z.number().int().min(0),
+});
+
 export const menuSchema = z.object({
   name: z.string().trim().min(2).max(120),
   slug: z
@@ -91,6 +101,7 @@ export const menuSchema = z.object({
     z.object({ url: z.string().url(), order: z.number().int().min(0) }),
   ),
   addons: z.array(menuAddonSchema),
+  priceTiers: z.array(menuPriceTierSchema),
 });
 
 export const portfolioImageSchema = z.object({

@@ -65,6 +65,9 @@ export default async function MenuDetailPage({
           where: { isActive: true },
           orderBy: [{ order: "asc" }, { createdAt: "asc" }],
         },
+        priceTiers: {
+          orderBy: { minPeople: "asc" },
+        },
       },
     }),
     getSiteSettings(),
@@ -109,6 +112,19 @@ export default async function MenuDetailPage({
               </span>
               <span className="text-background/70 ml-2">por pessoa</span>
             </div>
+            {menu.priceTiers.length > 0 && (
+              <ul className="mt-3 text-sm text-background/80 space-y-1">
+                {menu.priceTiers.map((t) => (
+                  <li key={t.id}>
+                    A partir de {t.minPeople} pessoas:{" "}
+                    <span className="font-medium">
+                      {formatBRL(Number(t.pricePerPerson))}
+                    </span>{" "}
+                    por pessoa
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </section>
@@ -196,6 +212,10 @@ export default async function MenuDetailPage({
                       name: a.name,
                       description: a.description,
                       pricePerPerson: Number(a.pricePerPerson),
+                    }))}
+                    priceTiers={menu.priceTiers.map((t) => ({
+                      minPeople: t.minPeople,
+                      pricePerPerson: Number(t.pricePerPerson),
                     }))}
                   />
                 </CardContent>

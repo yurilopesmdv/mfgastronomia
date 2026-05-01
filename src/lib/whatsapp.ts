@@ -88,3 +88,27 @@ export function calculateMenuTotal(params: {
   const waitersTotal = params.waiterAdditionalPrice * extraWaiters;
   return peopleTotal + waitersTotal;
 }
+
+export type PriceTier = { minPeople: number; pricePerPerson: number };
+
+/**
+ * Resolve o preço por pessoa efetivo baseado nas faixas configuradas
+ * para o cardápio. A faixa com maior `minPeople` ainda <= peopleCount vence.
+ * Se nenhuma faixa se aplicar (ou a lista for vazia), usa basePricePerPerson.
+ */
+export function resolvePricePerPerson(params: {
+  basePricePerPerson: number;
+  tiers: PriceTier[];
+  peopleCount: number;
+}): { price: number; tier: PriceTier | null } {
+  const sorted = [...params.tiers].sort((a, b) => a.minPeople - b.minPeople);
+  let price = params.basePricePerPerson;
+  let chosen: PriceTier | null = null;
+  for (const t of sorted) {
+    if (params.peopleCount >= t.minPeople) {
+      price = t.pricePerPerson;
+      chosen = t;
+    }
+  }
+  return { price, tier: chosen };
+}

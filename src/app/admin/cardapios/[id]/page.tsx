@@ -14,6 +14,7 @@ export default async function EditMenuPage({
       items: { orderBy: { order: "asc" } },
       galleryImages: { orderBy: { order: "asc" } },
       addons: { orderBy: [{ order: "asc" }, { createdAt: "asc" }] },
+      priceTiers: { orderBy: { minPeople: "asc" } },
     },
   });
   if (!menu) notFound();
@@ -48,6 +49,11 @@ export default async function EditMenuPage({
             pricePerPerson: Number(a.pricePerPerson),
             order: a.order,
             isActive: a.isActive,
+          })),
+          priceTiers: menu.priceTiers.map((t) => ({
+            minPeople: t.minPeople,
+            pricePerPerson: Number(t.pricePerPerson),
+            order: t.order,
           })),
         }}
       />

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { calculateMenuTotal, formatBRL } from "@/lib/whatsapp";
+import { calculateMenuTotal, formatBRL, resolvePricePerPerson } from "@/lib/whatsapp";
 import { formatPhoneBR } from "@/lib/phone-mask";
 
 export type MenuAddonOption = {
@@ -20,12 +20,18 @@ export type MenuAddonOption = {
   pricePerPerson: number;
 };
 
+export type MenuPriceTierOption = {
+  minPeople: number;
+  pricePerPerson: number;
+};
+
 type Props = {
   menuId: string;
   pricePerPerson: number;
   waiterAdditionalPrice: number;
   minPeople: number;
   addons?: MenuAddonOption[];
+  priceTiers?: MenuPriceTierOption[];
 };
 
 type DraftShape = {
@@ -45,6 +51,7 @@ export function MenuQuoteForm({
   waiterAdditionalPrice,
   minPeople,
   addons = [],
+  priceTiers = [],
 }: Props) {
   const formSchema = useMemo(
     () =>
@@ -151,29 +158,39 @@ export function MenuQuoteForm({
       .reduce((sum, a) => sum + a.pricePerPerson, 0);
   }, [addons, selectedAddonIds]);
 
+  // Resolve preço efetivo conforme faixa de pessoas
+  const peopleNum = Number(peopleCount) || 0;
+  const { price: effectivePricePerPerson, tier: appliedTier } = useMemo(
+    () =>
+      resolvePricePerPerson({
+        basePricePerPerson: pricePerPerson,
+        tiers: priceTiers,
+        peopleCount: peopleNum,
+      }),
+    [pricePerPerson, priceTiers, peopleNum],
+  );
+
   const total = useMemo(() => {
-    const people = Number(peopleCount);
-    if (!people || people < minPeople) return 0;
+    if (!peopleNum || peopleNum < minPeople) return 0;
     return calculateMenuTotal({
-      pricePerPerson,
-      peopleCount: people,
+      pricePerPerson: effectivePricePerPerson,
+      peopleCount: peopleNum,
       waitersCount,
       waiterAdditionalPrice,
       addonsPricePerPerson,
     });
   }, [
-    peopleCount,
+    peopleNum,
     waitersCount,
-    pricePerPerson,
+    effectivePricePerPerson,
     waiterAdditionalPrice,
     addonsPricePerPerson,
     minPeople,
   ]);
 
   // Breakdown de cálculo (linhas só aparecem se relevantes)
-  const peopleNum = Number(peopleCount) || 0;
   const validPeople = peopleNum >= minPeople ? peopleNum : 0;
-  const baseLine = validPeople * pricePerPerson;
+  const baseLine = validPeople * effectivePricePerPerson;
   const extraWaiters = Math.max(0, (waitersCount ?? 1) - 1);
   const waitersLine = extraWaiters * waiterAdditionalPrice;
   const selectedAddonsList = addons.filter((a) => selectedAddonIds.has(a.id));
@@ -366,7 +383,12 @@ export function MenuQuoteForm({
             <div className="flex justify-between text-muted-foreground">
               <span>
                 {validPeople} pessoa{validPeople === 1 ? "" : "s"} ×{" "}
-                {formatBRL(pricePerPerson)}
+                {formatBRL(effectivePricePerPerson)}
+                {appliedTier ? (
+                  <span className="ml-1 text-xs">
+                    (faixa {appliedTier.minPeople}+ pessoas)
+                  </span>
+                ) : null}
               </span>
               <span>{formatBRL(baseLine)}</span>
             </div>
