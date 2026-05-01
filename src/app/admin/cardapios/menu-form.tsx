@@ -4,12 +4,14 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useSavedFeedback } from "@/lib/hooks/useSavedFeedback";
 import {
   Select,
   SelectContent,
@@ -41,6 +43,7 @@ function slugify(s: string): string {
 export function MenuForm({ mode, initial }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { saved, markSaved } = useSavedFeedback();
 
   const {
     register,
@@ -57,15 +60,18 @@ export function MenuForm({ mode, initial }: Props) {
       description: "",
       mainImageUrl: "",
       pricePerPerson: 0,
+      minPeople: 10,
       isActive: true,
       order: 0,
       items: [],
       galleryImages: [],
+      addons: [],
     },
   });
 
   const items = useFieldArray({ control, name: "items" });
   const gallery = useFieldArray({ control, name: "galleryImages" });
+  const addons = useFieldArray({ control, name: "addons" });
 
   const mainImageUrl = watch("mainImageUrl");
   const galleryImages = watch("galleryImages");
@@ -86,6 +92,7 @@ export function MenuForm({ mode, initial }: Props) {
           return;
         }
         toast.success("Cardápio atualizado");
+        markSaved();
         router.refresh();
       }
     });
@@ -123,8 +130,11 @@ export function MenuForm({ mode, initial }: Props) {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug (URL)</Label>
+              <Label htmlFor="slug">URL amigável (ex: premium-plus)</Label>
               <Input id="slug" {...register("slug")} />
+              <p className="text-xs text-muted-foreground">
+                Aparece no link do cardápio. Use só letras minúsculas, números e hífens.
+              </p>
               {errors.slug && (
                 <p className="text-sm text-destructive">{errors.slug.message}</p>
               )}
@@ -139,7 +149,7 @@ export function MenuForm({ mode, initial }: Props) {
             )}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <Label htmlFor="pricePerPerson">Preço por pessoa (R$)</Label>
               <Input
@@ -155,18 +165,36 @@ export function MenuForm({ mode, initial }: Props) {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="order">Ordem</Label>
+              <Label htmlFor="minPeople">Mínimo de pessoas</Label>
+              <Input
+                id="minPeople"
+                type="number"
+                min={1}
+                {...register("minPeople", { valueAsNumber: true })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Atendemos a partir desta quantidade neste cardápio.
+              </p>
+              {errors.minPeople && (
+                <p className="text-sm text-destructive">{errors.minPeople.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="order">Ordem (número)</Label>
               <Input
                 id="order"
                 type="number"
                 {...register("order", { valueAsNumber: true })}
               />
+              <p className="text-xs text-muted-foreground">
+                Menor número aparece primeiro no site.
+              </p>
             </div>
             <div className="space-y-2">
-              <Label className="block">Status</Label>
-              <label className="inline-flex items-center gap-2 text-sm">
+              <Label className="block">Aparecer no site</Label>
+              <label className="inline-flex items-center gap-2 text-sm pt-2">
                 <input type="checkbox" {...register("isActive")} className="size-4" />
-                Ativo (aparece no site)
+                Sim, mostrar este cardápio
               </label>
             </div>
           </div>
@@ -246,6 +274,104 @@ export function MenuForm({ mode, initial }: Props) {
 
       <Card>
         <CardHeader>
+          <CardTitle>Adicionais (cobrado por pessoa)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Os adicionais aparecem como caixas marcáveis para o cliente no site.
+            O preço é multiplicado pela quantidade de pessoas. O cliente pode
+            escolher zero ou mais.
+          </p>
+          {addons.fields.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nenhum adicional cadastrado. Use o botão abaixo para criar o primeiro.
+            </p>
+          )}
+          {addons.fields.map((field, idx) => (
+            <div key={field.id} className="rounded-md border p-3 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-[1fr_140px_100px]">
+                <div className="space-y-1">
+                  <Label className="text-xs">Nome</Label>
+                  <Input
+                    {...register(`addons.${idx}.name`)}
+                    placeholder="Sobremesa premium"
+                  />
+                  {errors.addons?.[idx]?.name && (
+                    <p className="text-xs text-destructive">
+                      {errors.addons[idx]?.name?.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Preço/pessoa (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    {...register(`addons.${idx}.pricePerPerson`, {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  {errors.addons?.[idx]?.pricePerPerson && (
+                    <p className="text-xs text-destructive">
+                      {errors.addons[idx]?.pricePerPerson?.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Ordem</Label>
+                  <Input
+                    type="number"
+                    {...register(`addons.${idx}.order`, { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Descrição (opcional)</Label>
+                <Input
+                  {...register(`addons.${idx}.description`)}
+                  placeholder="Ex: torta de limão e brownie de chocolate"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    {...register(`addons.${idx}.isActive`)}
+                    className="size-4"
+                  />
+                  Aparecer no site
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => addons.remove(idx)}
+                >
+                  Remover adicional
+                </Button>
+              </div>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              addons.append({
+                name: "",
+                description: "",
+                pricePerPerson: 0,
+                order: addons.fields.length,
+                isActive: true,
+              })
+            }
+          >
+            Adicionar adicional
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Galeria de imagens</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -294,8 +420,20 @@ export function MenuForm({ mode, initial }: Props) {
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Salvando..." : mode === "create" ? "Criar" : "Salvar"}
+        <Button type="submit" disabled={pending || saved}>
+          {pending ? (
+            <>
+              <Loader2 className="size-4 animate-spin" /> Salvando...
+            </>
+          ) : saved ? (
+            <>
+              <Check className="size-4" /> Salvo
+            </>
+          ) : mode === "create" ? (
+            "Criar"
+          ) : (
+            "Salvar"
+          )}
         </Button>
         {mode === "edit" && (
           <Button

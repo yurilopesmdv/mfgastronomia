@@ -23,9 +23,14 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       contactText:
         "Fale com a gente pelo WhatsApp e receba seu orçamento personalizado.",
       waiterAdditionalPrice: 0,
-      logoUrl: null,
-      heroImageUrl: null,
-      aboutImageUrl: null,
     },
   });
+}
+
+export function getSiteUrl(settings: { siteUrl: string | null }): string {
+  return (
+    settings.siteUrl ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://mfgastronomia.com.br"
+  );
 }

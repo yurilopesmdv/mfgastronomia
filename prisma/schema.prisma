@@ -24,9 +24,10 @@ model Menu {
   id             String             @id @default(cuid())
   slug           String             @unique
   name           String
-  description    String
+  description    String             @db.Text
   mainImageUrl   String
   pricePerPerson Decimal            @db.Decimal(10, 2)
+  minPeople      Int                @default(10)
   isActive       Boolean            @default(true)
   order          Int                @default(0)
   createdAt      DateTime           @default(now())
@@ -34,7 +35,25 @@ model Menu {
 
   items          MenuItem[]
   galleryImages  MenuGalleryImage[]
+  addons         MenuAddon[]
   leads          Lead[]
+}
+
+// Adicionais por cardápio (cobrados por pessoa). Cliente marca no público.
+model MenuAddon {
+  id             String   @id @default(cuid())
+  menuId         String
+  name           String
+  description    String?
+  pricePerPerson Decimal  @db.Decimal(10, 2)
+  order          Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  menu           Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@index([menuId])
 }
 
 enum MenuItemCategory {
@@ -78,16 +97,95 @@ model PortfolioImage {
 model SiteSettings {
   id                    String   @id @default("default")
   whatsappNumber        String
-  defaultContactMessage String
+  defaultContactMessage String   @db.Text
   heroTitle             String
-  heroSubtitle          String
-  aboutText             String
-  contactText           String
+  heroSubtitle          String   @db.Text
+  aboutText             String   @db.Text
+  contactText           String   @db.Text
   waiterAdditionalPrice Decimal  @db.Decimal(10, 2) @default(0)
   logoUrl               String?
   heroImageUrl          String?
   aboutImageUrl         String?
+  ogImageUrl            String?
+
+  // SEO / negócio
+  siteUrl               String?
+  email                 String?
+  phoneFallback         String?
+  instagramHandle       String?
+  facebookUrl           String?
+  priceRange            String?
+  addressCity           String?
+  addressRegion         String?
+  addressStreet         String?
+  latitude              Decimal? @db.Decimal(10, 7)
+  longitude             Decimal? @db.Decimal(10, 7)
+
+  // Logo invertido (para fundos escuros, ex: footer). Opcional.
+  logoUrlDark           String?
+
+  // Toggles de seções da home
+  showFeatures          Boolean  @default(true)
+  showAbout             Boolean  @default(true)
+  showFeaturedMenus     Boolean  @default(true)
+  showHowItWorks        Boolean  @default(true)
+  showPortfolioPreview  Boolean  @default(true)
+  showFinalCta          Boolean  @default(true)
+  showFaq               Boolean  @default(true)
+  showTestimonials      Boolean  @default(true)
+  showServiceArea       Boolean  @default(true)
+
+  // Área de atendimento
+  serviceAreaText       String?  @db.Text
+
   updatedAt             DateTime @updatedAt
+}
+
+// Diferenciais editáveis exibidos na home (substitui o array hardcoded)
+model HomeFeature {
+  id        String   @id @default(cuid())
+  title     String
+  body      String   @db.Text
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Passos da seção "Como funciona"
+model HomeStep {
+  id        String   @id @default(cuid())
+  title     String
+  body      String   @db.Text
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Perguntas frequentes
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Depoimentos de clientes
+model Testimonial {
+  id          String   @id @default(cuid())
+  authorName  String
+  authorEvent String?
+  quote       String   @db.Text
+  rating      Int?
+  photoUrl    String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum LeadSource {
@@ -107,6 +205,9 @@ model Lead {
   city            String?
   neighborhood    String?
   calculatedTotal Decimal?   @db.Decimal(10, 2)
+  // Snapshot dos adicionais escolhidos no momento do orçamento.
+  // Formato: [{ id, name, pricePerPerson }]
+  selectedAddons  Json?
   createdAt       DateTime   @default(now())
 
   menu            Menu?      @relation(fields: [menuId], references: [id], onDelete: SetNull)

@@ -21,7 +21,7 @@ export async function createMenuAction(rawInput: unknown) {
       issues: parsed.error.flatten().fieldErrors,
     };
   }
-  const { items, galleryImages, ...rest } = parsed.data;
+  const { items, galleryImages, addons, ...rest } = parsed.data;
 
   const slugTaken = await prisma.menu.findUnique({
     where: { slug: rest.slug },
@@ -36,6 +36,7 @@ export async function createMenuAction(rawInput: unknown) {
       ...rest,
       items: { create: items },
       galleryImages: { create: galleryImages },
+      addons: addons && addons.length ? { create: addons } : undefined,
     },
     select: { id: true },
   });
@@ -56,7 +57,7 @@ export async function updateMenuAction(id: string, rawInput: unknown) {
       issues: parsed.error.flatten().fieldErrors,
     };
   }
-  const { items, galleryImages, ...rest } = parsed.data;
+  const { items, galleryImages, addons, ...rest } = parsed.data;
 
   const slugTaken = await prisma.menu.findFirst({
     where: { slug: rest.slug, NOT: { id } },
@@ -70,6 +71,7 @@ export async function updateMenuAction(id: string, rawInput: unknown) {
     prisma.menu.update({ where: { id }, data: rest }),
     prisma.menuItem.deleteMany({ where: { menuId: id } }),
     prisma.menuGalleryImage.deleteMany({ where: { menuId: id } }),
+    prisma.menuAddon.deleteMany({ where: { menuId: id } }),
     ...(items.length
       ? [prisma.menuItem.createMany({ data: items.map((i) => ({ ...i, menuId: id })) })]
       : []),
@@ -77,6 +79,13 @@ export async function updateMenuAction(id: string, rawInput: unknown) {
       ? [
           prisma.menuGalleryImage.createMany({
             data: galleryImages.map((g) => ({ ...g, menuId: id })),
+          }),
+        ]
+      : []),
+    ...(addons && addons.length
+      ? [
+          prisma.menuAddon.createMany({
+            data: addons.map((a) => ({ ...a, menuId: id })),
           }),
         ]
       : []),

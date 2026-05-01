@@ -60,17 +60,48 @@ export async function POST(req: NextRequest) {
 
   const menu = await prisma.menu.findUnique({
     where: { id: data.menuId },
-    select: { id: true, name: true, pricePerPerson: true, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      pricePerPerson: true,
+      isActive: true,
+      minPeople: true,
+      addons: {
+        where: { isActive: true },
+        select: { id: true, name: true, pricePerPerson: true },
+      },
+    },
   });
   if (!menu || !menu.isActive) {
     return NextResponse.json({ error: "Cardápio inválido" }, { status: 400 });
   }
+  if (data.peopleCount < menu.minPeople) {
+    return NextResponse.json(
+      { error: `Este cardápio atende a partir de ${menu.minPeople} pessoas.` },
+      { status: 400 },
+    );
+  }
+
+  // Validar adicionais escolhidos contra os adicionais ativos do menu correto.
+  // Ignora silenciosamente IDs desconhecidos (não confiamos no cliente).
+  const requestedIds = new Set(data.selectedAddonIds ?? []);
+  const validAddons = menu.addons.filter((a) => requestedIds.has(a.id));
+  const addonsSnapshot = validAddons.map((a) => ({
+    id: a.id,
+    name: a.name,
+    pricePerPerson: Number(a.pricePerPerson),
+  }));
+  const addonsPricePerPerson = addonsSnapshot.reduce(
+    (sum, a) => sum + a.pricePerPerson,
+    0,
+  );
 
   const calculatedTotal = calculateMenuTotal({
     pricePerPerson: Number(menu.pricePerPerson),
     peopleCount: data.peopleCount,
     waitersCount: data.waitersCount,
     waiterAdditionalPrice: Number(settings.waiterAdditionalPrice),
+    addonsPricePerPerson,
   });
 
   await prisma.lead.create({
@@ -85,6 +116,7 @@ export async function POST(req: NextRequest) {
       city: data.city,
       neighborhood: data.neighborhood,
       calculatedTotal,
+      selectedAddons: addonsSnapshot.length > 0 ? addonsSnapshot : undefined,
     },
   });
 
@@ -98,6 +130,7 @@ export async function POST(req: NextRequest) {
     city: data.city,
     neighborhood: data.neighborhood,
     calculatedTotal,
+    selectedAddons: addonsSnapshot,
   });
   const whatsappUrl = buildWhatsappUrl(settings.whatsappNumber, message);
   return NextResponse.json({ whatsappUrl });

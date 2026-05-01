@@ -46,6 +46,7 @@ export default async function CardapiosPage() {
                   mainImageUrl={m.mainImageUrl}
                   pricePerPerson={Number(m.pricePerPerson)}
                   index={i}
+                  headingLevel="h2"
                 />
               </FadeIn>
             ))}

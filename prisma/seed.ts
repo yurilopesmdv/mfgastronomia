@@ -7,7 +7,8 @@ const FAKE_IMAGE = (seed: string) =>
   `https://picsum.photos/seed/${seed}/1600/1200`;
 
 async function main() {
-  // Site settings
+  // Site settings — só popula campos NOVOS na atualização (não sobrescreve
+  // edições do cliente em campos existentes).
   await prisma.siteSettings.upsert({
     where: { id: "default" },
     create: {
@@ -23,9 +24,124 @@ async function main() {
       contactText:
         "Solicite seu orçamento pelo WhatsApp e em poucos minutos retornamos com todas as informações.",
       waiterAdditionalPrice: 250,
+      serviceAreaText:
+        "Atendemos Curitiba e região metropolitana. Taxa de deslocamento conforme distância.",
+      addressCity: "Curitiba",
+      priceRange: "$$",
     },
     update: {},
   });
+
+  // Home features (idempotente — só cria se não existir nada)
+  const featuresCount = await prisma.homeFeature.count();
+  if (featuresCount === 0) {
+    await prisma.homeFeature.createMany({
+      data: [
+        {
+          title: "Estrutura completa",
+          body:
+            "Levamos tudo: churrasqueira, mesas, utensílios e equipe pronta para o seu evento.",
+          order: 0,
+        },
+        {
+          title: "Cortes selecionados",
+          body:
+            "Carnes nobres acompanhadas de aperitivos e guarnições preparadas no momento.",
+          order: 1,
+        },
+        {
+          title: "Atendimento dedicado",
+          body:
+            "Da consulta inicial ao último prato — equipe atenta, atenciosa e à serviço da sua festa.",
+          order: 2,
+        },
+      ],
+    });
+  }
+
+  // Home steps (Como funciona)
+  const stepsCount = await prisma.homeStep.count();
+  if (stepsCount === 0) {
+    await prisma.homeStep.createMany({
+      data: [
+        {
+          title: "Conte sobre o evento",
+          body:
+            "Pelo WhatsApp, você nos passa a data, número de convidados e o estilo da festa.",
+          order: 0,
+        },
+        {
+          title: "Escolha o cardápio",
+          body:
+            "Sugerimos a opção ideal para o seu perfil. Você ajusta itens e fechamos o orçamento.",
+          order: 1,
+        },
+        {
+          title: "Aproveite o dia",
+          body:
+            "Chegamos antes, montamos tudo, servimos e deixamos o local impecável ao final.",
+          order: 2,
+        },
+      ],
+    });
+  }
+
+  // FAQs iniciais
+  const faqCount = await prisma.faq.count();
+  if (faqCount === 0) {
+    await prisma.faq.createMany({
+      data: [
+        {
+          question: "Qual a antecedência mínima para reservar?",
+          answer:
+            "Recomendamos 30 dias de antecedência. Em datas de alta procura (dezembro, junho/julho), o quanto antes melhor.",
+          order: 0,
+        },
+        {
+          question: "Quais cidades vocês atendem?",
+          answer:
+            "Curitiba e região metropolitana. Taxa de deslocamento conforme distância.",
+          order: 1,
+        },
+        {
+          question: "O que está incluso no preço por pessoa?",
+          answer:
+            "Aperitivos, carnes do cardápio, acompanhamentos, equipe de atendimento, churrasqueira e utensílios. Bebidas e mobiliário não estão inclusos por padrão.",
+          order: 2,
+        },
+        {
+          question: "Vocês fornecem mesas, cadeiras e talheres?",
+          answer:
+            "Trabalhamos com parceiros de confiança para locação de mobiliário. Podemos cuidar disso pra você ou somar ao orçamento.",
+          order: 3,
+        },
+        {
+          question: "Como funciona o pagamento?",
+          answer:
+            "Sinal de 30% no fechamento e o restante em até 7 dias antes do evento. Aceitamos PIX e transferência.",
+          order: 4,
+        },
+        {
+          question: "E se chover no evento?",
+          answer:
+            "Quando o evento é em espaço aberto, alinhamos plano B com você. Nossa equipe está preparada para montar em ambientes cobertos.",
+          order: 5,
+        },
+        {
+          question: "Há cardápio vegetariano ou opções para restrições alimentares?",
+          answer:
+            "Sim. Podemos personalizar o cardápio com opções vegetarianas, veganas e sem glúten. Avise no orçamento.",
+          order: 6,
+        },
+        {
+          question: "Qual o número mínimo de convidados?",
+          answer:
+            "Em geral, atendemos a partir de 10 pessoas, mas cada cardápio pode ter o seu próprio mínimo.",
+          order: 7,
+        },
+      ],
+    });
+  }
 
   // Admin user
   const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@mfgastronomia.com.br";

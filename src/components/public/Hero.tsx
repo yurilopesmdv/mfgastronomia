@@ -1,15 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { QuickContactDialog } from "./QuickContactDialog";
 
 type Props = {
   title: string;
   subtitle: string;
   imageUrl: string | null;
-  whatsappUrl: string;
 };
 
-export function Hero({ title, subtitle, imageUrl, whatsappUrl }: Props) {
+export function Hero({ title, subtitle, imageUrl }: Props) {
   return (
     <section className="relative isolate min-h-[100svh] flex items-end overflow-hidden">
       <div className="absolute inset-0 -z-10 bg-secondary">
@@ -39,23 +41,23 @@ export function Hero({ title, subtitle, imageUrl, whatsappUrl }: Props) {
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Button
-              render={<Link href="/cardapios" />}
+              render={<Link href="/cardapios" prefetch />}
               size="lg"
               nativeButton={false}
             >
               Ver cardápios
             </Button>
-            <Button
-              render={
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" />
+            <QuickContactDialog
+              trigger={
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-background/40 bg-transparent text-background hover:bg-background/10 hover:text-background"
+                >
+                  Fale conosco
+                </Button>
               }
-              nativeButton={false}
-              size="lg"
-              variant="outline"
-              className="border-background/40 bg-transparent text-background hover:bg-background/10 hover:text-background"
-            >
-              Fale no WhatsApp
-            </Button>
+            />
           </div>
         </div>
       </div>
