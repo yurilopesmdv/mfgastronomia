@@ -54,15 +54,16 @@ export function Header({ logoUrl, whatsappUrl }: Props) {
   const transparent = canBeTransparent && !scrolled && !mobileOpen;
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-40 transition-colors duration-300",
-        transparent
-          ? "bg-transparent text-background"
-          : "bg-background/85 backdrop-blur border-b border-border text-foreground",
-      )}
-    >
-      <div className="container mx-auto flex h-16 md:h-18 items-center justify-between px-4">
+    <>
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-40 transition-colors duration-300",
+          transparent
+            ? "bg-transparent text-background"
+            : "bg-background/85 backdrop-blur border-b border-border text-foreground",
+        )}
+      >
+        <div className="container mx-auto flex h-16 md:h-18 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3">
           {logoUrl ? (
             <Image
@@ -129,13 +130,15 @@ export function Header({ logoUrl, whatsappUrl }: Props) {
             <MenuIcon className="size-6" aria-hidden="true" />
           </button>
         </div>
-      </div>
+        </div>
+      </header>
 
-      {/* Drawer mobile */}
+      {/* Drawer mobile — fora do <header> para escapar do containing block
+          criado por backdrop-filter. Z acima do header (z-40). */}
       {mobileOpen && (
         <div
           id="mobile-nav"
-          className="md:hidden fixed inset-x-0 top-16 bottom-0 z-30 bg-background text-foreground border-t border-border overflow-y-auto"
+          className="md:hidden fixed inset-x-0 top-16 bottom-0 z-50 bg-background text-foreground border-t border-border overflow-y-auto"
         >
           <nav className="container mx-auto px-4 py-6 flex flex-col gap-1">
             {NAV.map((l) => (
@@ -176,6 +179,6 @@ export function Header({ logoUrl, whatsappUrl }: Props) {
           </nav>
         </div>
       )}
-    </header>
+    </>
   );
 }
