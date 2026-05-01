@@ -21,10 +21,9 @@ import { formatPhoneBR } from "@/lib/phone-mask";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Informe seu nome"),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^\+?\d[\d\s().-]{8,20}\d$/, "Telefone inválido"),
+  // O input tem máscara (ex: (41) 99999-9999), então a validação aqui é
+  // só de comprimento mínimo. A API recebe os dígitos puros — vide onSubmit.
+  phone: z.string().trim().min(10, "Telefone inválido"),
 });
 type Values = z.infer<typeof schema>;
 
@@ -55,10 +54,16 @@ export function QuickContactDialog({
 
   async function onSubmit(values: Values) {
     try {
+      // API recebe telefone como dígitos puros — máscara é só apresentação
+      const payload = {
+        source: "QUICK_CONTACT" as const,
+        ...values,
+        phone: values.phone.replace(/\D/g, ""),
+      };
       const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source: "QUICK_CONTACT", ...values }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

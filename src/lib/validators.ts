@@ -1,12 +1,11 @@
 import { z } from "zod";
 
-const phoneRegex = /^\+?\d[\d\s().-]{8,20}\d$/;
-
+// API recebe apenas dígitos (10–15). O front é responsável por remover
+// máscara antes de enviar — máscara é só apresentação no input.
 export const phoneSchema = z
   .string()
   .trim()
-  .regex(phoneRegex, "Telefone inválido")
-  .transform((v) => v.replace(/\D/g, ""));
+  .regex(/^\d{10,15}$/, "Telefone inválido");
 
 export const nameSchema = z.string().trim().min(2, "Nome muito curto").max(100);
 
