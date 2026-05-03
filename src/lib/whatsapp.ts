@@ -14,7 +14,6 @@ type MenuQuotePayload = {
   name: string;
   menuName: string;
   peopleCount: number;
-  waitersCount: number;
   eventDate: string;
   city: string;
   neighborhood: string;
@@ -54,7 +53,6 @@ export function buildWhatsappMessage(
   }
 
   lines.push(
-    `🍽️ Garçons: ${payload.waitersCount}`,
     `📅 Data: ${payload.eventDate}`,
     `📍 Local: ${payload.city} - ${payload.neighborhood}`,
     "",
