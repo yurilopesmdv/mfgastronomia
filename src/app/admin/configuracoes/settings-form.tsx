@@ -383,20 +383,10 @@ export function SettingsForm({ initial }: { initial: FormIn }) {
             )}
           </div>
 
-          <div className="space-y-2 max-w-xs">
-            <Label htmlFor="waiterAdditionalPrice">
-              Preço por garçom adicional (R$)
-            </Label>
-            <Input
-              id="waiterAdditionalPrice"
-              type="number"
-              step="0.01"
-              {...register("waiterAdditionalPrice", { valueAsNumber: true })}
-            />
-            <p className="text-xs text-muted-foreground">
-              1º garçom incluso. Adicionais cobram este valor cada.
-            </p>
-          </div>
+          {/* Campo "Preço por garçom adicional" oculto da UI a pedido do
+              cliente — feature desativada no front (público e admin). O valor
+              continua no banco e é re-enviado intacto pelo register hidden. */}
+          <input type="hidden" {...register("waiterAdditionalPrice", { valueAsNumber: true })} />
         </CardContent>
       </Card>
 

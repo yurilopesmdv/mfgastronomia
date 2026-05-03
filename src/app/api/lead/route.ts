@@ -140,7 +140,6 @@ export async function POST(req: NextRequest) {
     name: data.name,
     menuName: menu.name,
     peopleCount: data.peopleCount,
-    waitersCount: data.waitersCount,
     eventDate: data.eventDate,
     city: data.city,
     neighborhood: data.neighborhood,

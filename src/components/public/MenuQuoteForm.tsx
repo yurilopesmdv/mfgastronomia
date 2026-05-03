@@ -9,7 +9,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { calculateMenuTotal, formatBRL, resolvePricePerPerson } from "@/lib/whatsapp";
 import { formatPhoneBR } from "@/lib/phone-mask";
 
@@ -28,7 +27,6 @@ export type MenuPriceTierOption = {
 type Props = {
   menuId: string;
   pricePerPerson: number;
-  waiterAdditionalPrice: number;
   minPeople: number;
   addons?: MenuAddonOption[];
   priceTiers?: MenuPriceTierOption[];
@@ -38,7 +36,6 @@ type DraftShape = {
   name: string;
   phone: string;
   peopleCount: number;
-  waitersCount: number;
   eventDate: string;
   city: string;
   neighborhood: string;
@@ -48,7 +45,6 @@ type DraftShape = {
 export function MenuQuoteForm({
   menuId,
   pricePerPerson,
-  waiterAdditionalPrice,
   minPeople,
   addons = [],
   priceTiers = [],
@@ -62,7 +58,6 @@ export function MenuQuoteForm({
           .number({ message: "Informe a quantidade" })
           .int()
           .min(minPeople, `Mínimo ${minPeople} pessoas`),
-        waitersCount: z.number().int().min(1).max(3),
         eventDate: z.string().trim().min(1, "Data obrigatória"),
         city: z.string().trim().min(2, "Cidade obrigatória"),
         neighborhood: z.string().trim().min(2, "Bairro obrigatório"),
@@ -84,7 +79,6 @@ export function MenuQuoteForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       peopleCount: Math.max(30, minPeople),
-      waitersCount: 1,
     },
   });
 
@@ -104,8 +98,6 @@ export function MenuQuoteForm({
         if (draft.phone) setValue("phone", draft.phone);
         if (typeof draft.peopleCount === "number")
           setValue("peopleCount", draft.peopleCount);
-        if (typeof draft.waitersCount === "number")
-          setValue("waitersCount", draft.waitersCount);
         if (draft.eventDate) setValue("eventDate", draft.eventDate);
         if (draft.city) setValue("city", draft.city);
         if (draft.neighborhood) setValue("neighborhood", draft.neighborhood);
@@ -128,7 +120,6 @@ export function MenuQuoteForm({
         name: watched.name ?? "",
         phone: watched.phone ?? "",
         peopleCount: Number(watched.peopleCount) || minPeople,
-        waitersCount: Number(watched.waitersCount) || 1,
         eventDate: watched.eventDate ?? "",
         city: watched.city ?? "",
         neighborhood: watched.neighborhood ?? "",
@@ -150,7 +141,6 @@ export function MenuQuoteForm({
   }
 
   const peopleCount = watch("peopleCount");
-  const waitersCount = watch("waitersCount") ?? 1;
 
   const addonsPricePerPerson = useMemo(() => {
     return addons
@@ -175,15 +165,13 @@ export function MenuQuoteForm({
     return calculateMenuTotal({
       pricePerPerson: effectivePricePerPerson,
       peopleCount: peopleNum,
-      waitersCount,
-      waiterAdditionalPrice,
+      waitersCount: 1,
+      waiterAdditionalPrice: 0,
       addonsPricePerPerson,
     });
   }, [
     peopleNum,
-    waitersCount,
     effectivePricePerPerson,
-    waiterAdditionalPrice,
     addonsPricePerPerson,
     minPeople,
   ]);
@@ -191,18 +179,18 @@ export function MenuQuoteForm({
   // Breakdown de cálculo (linhas só aparecem se relevantes)
   const validPeople = peopleNum >= minPeople ? peopleNum : 0;
   const baseLine = validPeople * effectivePricePerPerson;
-  const extraWaiters = Math.max(0, (waitersCount ?? 1) - 1);
-  const waitersLine = extraWaiters * waiterAdditionalPrice;
   const selectedAddonsList = addons.filter((a) => selectedAddonIds.has(a.id));
 
   async function onSubmit(values: FormValues) {
     try {
-      // API recebe telefone como dígitos puros — máscara é só apresentação
+      // API recebe telefone como dígitos puros — máscara é só apresentação.
+      // waitersCount fixo em 1: feature de garçom adicional desativada na UI.
       const payload = {
         source: "MENU_QUOTE" as const,
         menuId,
         ...values,
         phone: values.phone.replace(/\D/g, ""),
+        waitersCount: 1,
         selectedAddonIds: Array.from(selectedAddonIds),
       };
       const res = await fetch("/api/lead", {
@@ -293,29 +281,6 @@ export function MenuQuoteForm({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label id="waitersLabel">Quantidade de garçons</Label>
-          <span className="text-sm font-medium tabular-nums">{waitersCount}</span>
-        </div>
-        <Slider
-          aria-label="Quantidade de garçons"
-          aria-labelledby="waitersLabel"
-          aria-valuetext={`${waitersCount} ${waitersCount === 1 ? "garçom" : "garçons"}`}
-          min={1}
-          max={3}
-          step={1}
-          value={[waitersCount]}
-          onValueChange={(v) => {
-            const val = Array.isArray(v) ? (v[0] ?? 1) : v;
-            setValue("waitersCount", val, { shouldValidate: true });
-          }}
-        />
-        <p className="text-xs text-muted-foreground">
-          1º garçom incluso. Adicionais: {formatBRL(waiterAdditionalPrice)} cada.
-        </p>
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="city">Cidade</Label>
@@ -395,15 +360,6 @@ export function MenuQuoteForm({
               </span>
               <span>{formatBRL(baseLine)}</span>
             </div>
-            {extraWaiters > 0 && (
-              <div className="flex justify-between text-muted-foreground">
-                <span>
-                  + {extraWaiters} garç{extraWaiters === 1 ? "om" : "ons"} adicional
-                  {extraWaiters === 1 ? "" : "es"}
-                </span>
-                <span>{formatBRL(waitersLine)}</span>
-              </div>
-            )}
             {selectedAddonsList.map((a) => (
               <div key={a.id} className="flex justify-between text-muted-foreground">
                 <span>

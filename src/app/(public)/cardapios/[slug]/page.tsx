@@ -205,7 +205,6 @@ export default async function MenuDetailPage({
                   <MenuQuoteForm
                     menuId={menu.id}
                     pricePerPerson={Number(menu.pricePerPerson)}
-                    waiterAdditionalPrice={Number(settings.waiterAdditionalPrice)}
                     minPeople={menu.minPeople}
                     addons={menu.addons.map((a) => ({
                       id: a.id,

@@ -188,7 +188,6 @@ export default async function AdminLeadsPage({
                   <th className="p-3">Telefone</th>
                   <th className="p-3">Cardápio</th>
                   <th className="p-3">Pessoas</th>
-                  <th className="p-3">Garçons</th>
                   <th className="p-3">Data evento</th>
                   <th className="p-3">Local</th>
                   <th className="p-3 text-right">Total</th>
@@ -225,7 +224,6 @@ export default async function AdminLeadsPage({
                       <td className="p-3">{l.phone}</td>
                       <td className="p-3">{l.menu?.name ?? "-"}</td>
                       <td className="p-3">{l.peopleCount ?? "-"}</td>
-                      <td className="p-3">{l.waitersCount ?? "-"}</td>
                       <td className="p-3">{l.eventDate ?? "-"}</td>
                       <td className="p-3">
                         {l.city && l.neighborhood
@@ -278,12 +276,6 @@ export default async function AdminLeadsPage({
                         <>
                           <dt className="text-muted-foreground">Pessoas</dt>
                           <dd>{l.peopleCount}</dd>
-                        </>
-                      )}
-                      {l.waitersCount != null && (
-                        <>
-                          <dt className="text-muted-foreground">Garçons</dt>
-                          <dd>{l.waitersCount}</dd>
                         </>
                       )}
                       {l.eventDate && (
